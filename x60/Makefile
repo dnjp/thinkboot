@@ -4,6 +4,9 @@
 
 # build dependencies:
 # 	- gcc-ada
+# m4
+# bison
+# flex
 
 deps = bucts \
 	flashrom \
@@ -32,20 +35,23 @@ coreboot:
 	cd ../coreboot && make crossgcc-i386 CPUS=2
 	cd ../coreboot && make
 
+.PHONY: backup
+backup:
+	sudo flashrom --programmer internal -r backup.rom
+	sudo flashrom --programmer internal --verify backup.rom
+
 .PHONY: run
 run:
-	flashrom --programmer internal -r backup.rom
-	flashrom --programmer internal --verify backup.rom
-	cd ../coreboot/util/bucts && ./bucts --set
-	flashrom --programmer internal \
-		--write ../coreboot/build/coreboot.rm \
+	cd ../coreboot/util/bucts && sudo ./bucts --set
+	sudo flashrom --programmer internal \
+		--write ../coreboot/build/coreboot.rom \
 		--layout x60_layout \
 		--image RW
 
 .PHONY: corebootsettings
 corebootsettings:
 	cd ../coreboot/util/nvramtool && make
-	cd ../coreboot/util/nvramtool && ./nvramtool \
+	cd ../coreboot/util/nvramtool && sudo ./nvramtool \
 		-y ../../src/mainboard/lenovo/x60/cmos.layout \
 		-p ../../src/mainboard/lenovo/x60/cmos.default
 

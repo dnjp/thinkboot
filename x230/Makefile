@@ -4,6 +4,8 @@
 
 # build dependencies:
 # 	- gcc-ada
+# 	- libpci (libpci-dev in debian repos)
+# 	- libusb-1.0 (libusb-1.0 in debian repos)
 
 deps = flashrom \
 	ifdtool
