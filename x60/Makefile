@@ -30,6 +30,8 @@ bucts:
 
 .PHONY: coreboot
 coreboot:
+	cd ./../coreboot && git clean -fdx
+	cd ./../coreboot && git checkout 4.13
 	cd ./../coreboot && git submodule update --init --recursive
 	cp config ../coreboot/.config
 	cd ../coreboot && make crossgcc-i386 CPUS=2
@@ -37,8 +39,23 @@ coreboot:
 
 .PHONY: backup
 backup:
-	sudo flashrom --programmer internal -r backup.rom
-	sudo flashrom --programmer internal --verify backup.rom
+	sudo /usr/local/sbin/flashrom --programmer internal -r bios/cur_1.bin
+	sudo /usr/local/sbin/flashrom --programmer internal -r bios/cur_2.bin
+	sudo /usr/local/sbin/flashrom --programmer internal --verify bios/cur_1.bin
+	sudo /usr/local/sbin/flashrom --programmer internal --verify bios/cur_2.bin
+	sha512sum bios/cur*
+
+.PHONY: findchips_ch341a
+findchips_ch341a:
+	sudo /usr/local/sbin/flashrom -p ch341a_spi
+
+.PHONY: backup_ch341a
+backup_ch341a:
+	sudo /usr/local/sbin/flashrom -p ch341a_spi -r bios/cur_1.bin -c SST25VF016B
+	sudo /usr/local/sbin/flashrom -p ch341a_spi -r bios/cur_2.bin -c SST25VF016B
+	sudo /usr/local/sbin/flashrom -p ch341a_spi --verify bios/cur_1.bin
+	sudo /usr/local/sbin/flashrom -p ch341a_spi --verify bios/cur_2.bin
+	sha512sum bios/cur*
 
 .PHONY: run
 run:
@@ -47,6 +64,21 @@ run:
 		--write ../coreboot/build/coreboot.rom \
 		--layout x60_layout \
 		--image RW
+
+.PHONY: run_ch341a
+run_ch341a:
+	time sudo /usr/local/sbin/flashrom \
+		--chip SST25VF016B \
+		--programmer ch341a_spi \
+		--write ../coreboot/build/coreboot.rom
+
+.PHONY: restore_ch341a
+restore_ch341a:
+	time sudo /usr/local/sbin/flashrom \
+		--chip SST25VF016B \
+		--programmer ch341a_spi \
+		--write bios/cur_1.bin
+
 
 .PHONY: corebootsettings
 corebootsettings:
