@@ -59,7 +59,7 @@ backup_ch341a:
 
 .PHONY: run
 run:
-	cd ../coreboot/util/bucts && sudo ./bucts --set
+	# cd ../coreboot/util/bucts && sudo ./bucts --set
 	sudo flashrom --programmer internal \
 		--write ../coreboot/build/coreboot.rom \
 		--layout x60_layout \
