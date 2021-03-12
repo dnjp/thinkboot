@@ -56,23 +56,29 @@ nvramtool:
 
 .PHONY: coreboot
 coreboot_init:
-	cd ./../coreboot && git clean -fdx
+	cd ./../coreboot && git clean -xfd
+	cd ./../coreboot && git submodule foreach --recursive git clean -xfd
+	cd ./../coreboot && git reset --hard
 	cd ./../coreboot && git submodule foreach --recursive git reset --hard
+	cd ./../coreboot && git submodule update --init --recursive
 	cd ./../coreboot && git checkout master && git pull
 	cd ./../coreboot && git checkout 4.13
+	cd ./../coreboot && \
+		git fetch https://review.coreboot.org/coreboot refs/changes/50/28950/12 && \
+		git cherry-pick FETCH_HEAD
 	cd ./../coreboot && git submodule update --init --recursive
+	cd ../coreboot && make crossgcc CPUS=8
 
 .PHONY: coreboot_config
 coreboot_config:
 	cp config ../coreboot/.config
-	cd ../coreboot && make crossgcc CPUS=8
 	cd ../coreboot && make
 
 .PHONY: findchips_ch341a
 findchips_ch341a:
 	sudo /usr/local/sbin/flashrom -p ch341a_spi
-	# top: MX25L3206E/MX25L3208E
-	# bottom: EN25QH64
+	# top:    MX25L3206E/MX25L3208E
+	# bottom: MX25L6406E/MX25L6408E
 
 .PHONY: backup_top_ch341a
 backup_top_ch341a:
@@ -85,12 +91,12 @@ verify_top_ch341a:
 	sha512sum bios/factory_top*
 .PHONY: backup_bottom_ch341a
 backup_bottom_ch341a:
-	sudo /usr/local/sbin/flashrom -p ch341a_spi -r bios/factory_bottom_1.bin -c "EN25QH64"
-	sudo /usr/local/sbin/flashrom -p ch341a_spi -r bios/factory_bottom_2.bin -c "EN25QH64"
+	sudo /usr/local/sbin/flashrom -p ch341a_spi -r bios/factory_bottom_1.bin -c "MX25L6406E/MX25L6408E"
+	sudo /usr/local/sbin/flashrom -p ch341a_spi -r bios/factory_bottom_2.bin -c "MX25L6406E/MX25L6408E"
 .PHONY: verify_bottom_ch341a
 verify_bottom_ch341a:
-	sudo /usr/local/sbin/flashrom -p ch341a_spi --verify bios/factory_bottom_1.bin -c "EN25QH64"
-	sudo /usr/local/sbin/flashrom -p ch341a_spi --verify bios/factory_bottom_2.bin -c "EN25QH64"
+	sudo /usr/local/sbin/flashrom -p ch341a_spi --verify bios/factory_bottom_1.bin -c "MX25L6406E/MX25L6408E"
+	sudo /usr/local/sbin/flashrom -p ch341a_spi --verify bios/factory_bottom_2.bin -c "MX25L6406E/MX25L6408E"
 	sha512sum bios/factory_bottom*
 
 .PHONY: rom
@@ -107,8 +113,6 @@ extract_blobs:
 	#   Flash Region 2 (Intel ME): 00003000 - 004fffff
 	#   Flash Region 3 (GbE): 00001000 - 00002fff
 	#   Flash Region 4 (Platform Data): 00fff000 - 00000fff (unused)
-
-	mkdir -p ../coreboot/3rdparty/blobs/mainboard/lenovo/x230
 
 	cp bios/flashparts/flashregion*.bin ../coreboot/3rdparty/blobs/mainboard/lenovo/x230/
 
@@ -132,13 +136,16 @@ splitrom:
 
 .PHONY: flash_top
 flash_top:
+
+		
 	time sudo flashrom --chip "MX25L3206E/MX25L3208E" --programmer ch341a_spi --write ../coreboot/build/coreboot-top.rom
 
 .PHONY: flash_bottom
 flash_bottom:
-	time sudo flashrom --chip "EN25QH64" --programmer ch341a_spi --write ../coreboot/build/coreboot-bottom.rom
+	
+	time sudo flashrom --chip "MX25L6406E/MX25L6408E" --programmer ch341a_spi --write ../coreboot/build/coreboot-bottom.rom
 
 .PHONY: cleanme
 cleanme:
-	cd bios && python ../../me_cleaner/me_cleaner.py -t -r me.bin -O out.bin
+	cd bios && python ../../me_cleaner/me_cleaner.py -t -r ../coreboot/3rdparty/blobs/mainboard/lenovo/x230/me.bin -O out.bin
 
