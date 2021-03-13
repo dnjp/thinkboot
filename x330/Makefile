@@ -72,6 +72,7 @@ coreboot_init:
 .PHONY: coreboot_config
 coreboot_config:
 	cp config ../coreboot/.config
+	cp -r extra ../coreboot/extra
 	cd ../coreboot && make
 
 .PHONY: findchips_ch341a
