@@ -147,8 +147,3 @@ flash_bottom:
 cleanme:
 	cd bios && python ../../me_cleaner/me_cleaner.py -t -r ../coreboot/3rdparty/blobs/mainboard/lenovo/x230/me.bin -O out.bin
 
-xytech:
-	cp -r extra ../coreboot/extra
-	cp xytech.config ../coreboot/.config
-	cd ../coreboot && make iasl
-	cd ../coreboot && make
