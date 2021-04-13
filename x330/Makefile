@@ -56,23 +56,20 @@ nvramtool:
 
 .PHONY: coreboot
 coreboot_init:
-	cd ./../coreboot && git clean -xfd
-	cd ./../coreboot && git submodule foreach --recursive git clean -xfd
-	cd ./../coreboot && git reset --hard
-	cd ./../coreboot && git submodule foreach --recursive git reset --hard
-	cd ./../coreboot && git submodule update --init --recursive
-	cd ./../coreboot && git checkout master && git pull
-	cd ./../coreboot && git checkout 4.13
-	cd ./../coreboot && \
+	cd ../coreboot && git clean -xfd
+	cd ../coreboot && git reset --hard
+	cd ../coreboot && git checkout master 
+	cd ../coreboot && git pull --recurse-submodules
+	cd ../coreboot && \
 		git fetch https://review.coreboot.org/coreboot refs/changes/50/28950/12 && \
 		git cherry-pick FETCH_HEAD
-	cd ./../coreboot && git submodule update --init --recursive
 	cd ../coreboot && make crossgcc CPUS=8
 
 .PHONY: coreboot_config
 coreboot_config:
-	cp config ../coreboot/.config
 	cp -r extra ../coreboot/extra
+	cp xytech.config ../coreboot/.config
+	cd ../coreboot && make iasl
 	cd ../coreboot && make
 
 .PHONY: findchips_ch341a
@@ -150,3 +147,8 @@ flash_bottom:
 cleanme:
 	cd bios && python ../../me_cleaner/me_cleaner.py -t -r ../coreboot/3rdparty/blobs/mainboard/lenovo/x230/me.bin -O out.bin
 
+xytech:
+	cp -r extra ../coreboot/extra
+	cp xytech.config ../coreboot/.config
+	cd ../coreboot && make iasl
+	cd ../coreboot && make
