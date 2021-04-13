@@ -68,7 +68,7 @@ coreboot_init:
 .PHONY: coreboot_config
 coreboot_config:
 	cp -r extra ../coreboot/extra
-	cp xytech.config ../coreboot/.config
+	cp config ../coreboot/.config
 	cd ../coreboot && make iasl
 	cd ../coreboot && make
 
